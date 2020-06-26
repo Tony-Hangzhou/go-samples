@@ -1,6 +1,8 @@
 package common
 
 import (
+	"context"
+	"fmt"
 	"go.etcd.io/etcd/clientv3"
 	"time"
 )
@@ -10,5 +12,32 @@ func InstanceClient() (*clientv3.Client, error) {
 		Endpoints:   []string{"127.0.0.1:2379"},
 		DialTimeout: 5 * time.Second,
 	})
+	if err != nil {
+		fmt.Printf("connect to etcd failed, err:%v\n", err)
+		return nil, err
+	}
+	fmt.Println("connect to etcd success")
 	return cli, err
+}
+
+func OpsForGet() func(key string) (*string, *string) {
+	return func(key string) (*string, *string) {
+		cli, err := InstanceClient()
+		defer cli.Close()
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		resp, err := cli.Get(ctx, key)
+		defer cancel()
+		if err != nil {
+			fmt.Printf("get from etcd failed, err:%v\n", err)
+			return nil, nil
+		}
+		for _, ev := range resp.Kvs {
+			//ev.String();
+			fmt.Printf("KeyValue: %s\n", ev.String())
+			key := string(ev.Key[:])
+			value := string(ev.Value[:])
+			return &key, &value
+		}
+		return nil, nil
+	}
 }
