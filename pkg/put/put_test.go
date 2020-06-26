@@ -18,7 +18,7 @@ func TestMain(m *testing.M) {
 
 func TestPut(t *testing.T) {
 
-	key, value := PutAndGet()
+	key, value := PutAndGet("k1", "v2")
 	testutil.AssertNotNil(t, key)
 	testutil.AssertNotNil(t, value)
 

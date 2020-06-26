@@ -20,6 +20,20 @@ func InstanceClient() (*clientv3.Client, error) {
 	return cli, err
 }
 
+/**
+通过 func 入参，提供简化、灵活的Etcd操作
+*/
+func OpsForFun(f func(cli *clientv3.Client, ctx context.Context)) {
+	cli, _ := InstanceClient()
+	defer cli.Close()
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	f(cli, ctx)
+	defer cancel()
+}
+
+/**
+封装Get操作，通过返回func
+*/
 func OpsForGet() func(key string) (*string, *string) {
 	return func(key string) (*string, *string) {
 		cli, err := InstanceClient()
